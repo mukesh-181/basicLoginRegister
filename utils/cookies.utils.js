@@ -10,12 +10,12 @@ export const generateCookie = (res, cookieName, cookieValue) => {
   res.cookie(cookieName, cookieValue, cookieOptions);
 };
 
-export const removeCookie = (res,cookieName)=>{
-const cookieOptions = {
+export const removeCookie = (res, cookieName) => {
+  const cookieOptions = {
     httpOnly: true,
     secure: false,
     sameSite: "lax",
     path: "/",
   };
-   res.clearCookie(cookieName,cookieOptions);
-}
+  res.clearCookie(cookieName, cookieOptions);
+};
