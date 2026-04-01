@@ -1,6 +1,6 @@
 import express from "express";
 
-import UserRouter from "./routes/user.route.js";
+import userRouter from "./routes/user.route.js";
 import cookieParser from "cookie-parser";
 import helmet from "helmet";
 import authRouter from "./routes/auth.route.js";
@@ -17,7 +17,7 @@ app.use(cookieParser());
 app.get("/", (req, res) => {
   res.send("hello world");
 });
-app.use("/api/user", UserRouter);
+app.use("/api/user", userRouter);
 app.use("/api/auth", authRouter);
 
 export default app;

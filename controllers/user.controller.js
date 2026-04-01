@@ -5,6 +5,7 @@ import mongoose from "mongoose";
 import { generateAccessToken } from "../utils/token.utlis.js";
 
 import { env } from "../utils/env.utils.js";
+import { generateCookie } from "../utils/cookies.utils.js";
 
 export const getUserDetails = async (req, res) => {
   try {
@@ -26,7 +27,6 @@ export const getUserDetails = async (req, res) => {
     res
       .status(500)
       .json({ success: false, message: "Server Error", error: error.message });
-      
   }
 };
 
@@ -128,14 +128,7 @@ export const regenrateAccessToken = async (req, res) => {
     const decoded = jwt.verify(refreshToken, env.JWT_SECRETKEY);
 
     const accesstToken = generateAccessToken(decoded.id);
-
-    res.cookie("accessToken", accesstToken, {
-      maxAge: 15 * 60 * 1000,
-      httpOnly: true,
-      secure: true,
-      sameSite: "Strict",
-      path: "/",
-    });
+    generateCookie(res, "refresaccessTokenhToken", accesstToken);
 
     res.status(200).json({
       success: true,
