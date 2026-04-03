@@ -1,5 +1,6 @@
 import User from "../models/user.model.js";
 import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
 
 import mongoose from "mongoose";
 import { generateAccessToken } from "../utils/token.utlis.js";
@@ -11,7 +12,7 @@ export const getUserDetails = async (req, res) => {
   try {
     const id = req.user;
 
-    const user = await User.findOne({ _id: id });
+    const user = await User.findOne({ _id: id }).select("-password");
     if (!user) {
       return res
         .status(400)
@@ -32,7 +33,7 @@ export const getUserDetails = async (req, res) => {
 
 export const getAllUsers = async (req, res) => {
   try {
-    const users = await User.find({});
+    const users = await User.find({}).select("-password");
 
     if (!users.length > 0) {
       return res
@@ -89,6 +90,11 @@ export const updateUser = async (req, res) => {
       });
     }
 
+    if (updatedData.password) {
+      const hashPassword = await bcrypt.hash(updatedData.password, 10);
+      updatedData.password = hashPassword;
+    }
+
     const updatedUser = await User.findByIdAndUpdate(id, updatedData, {
       returnDocument: "after",
     });
@@ -125,15 +131,22 @@ export const regenrateAccessToken = async (req, res) => {
       });
     }
 
-    const decoded = jwt.verify(refreshToken, env.JWT_SECRETKEY);
+    const { id } = jwt.verify(refreshToken, env.JWT_SECRETKEY);
+    const user = await User.findOne({ _id: id });
+    if (!user || user.refreshToken !== refreshToken) {
+      return res.status(403).json({
+        success: false,
+        message: "Refresh Token Invalid",
+      });
+    }
 
-    const accesstToken = generateAccessToken(decoded.id);
-    generateCookie(res, "refresaccessTokenhToken", accesstToken);
+    const accessToken = generateAccessToken(id);
+    generateCookie(res, "accessToken", accessToken);
 
     res.status(200).json({
       success: true,
       message: "Successfully Access Token Generated ",
-      accesstToken,
+      accessToken,
       refreshToken,
     });
   } catch (error) {

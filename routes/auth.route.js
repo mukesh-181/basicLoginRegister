@@ -5,11 +5,12 @@ import {
   logoutUser,
   registerUser,
 } from "../controllers/auth.controller.js";
+import { authLimiter } from "../utils/rateLimiting.utils.js";
 
 const router = express.Router();
 
-router.post("/login", loginUser);
-router.post("/register", registerUser);
+router.post("/login", authLimiter, loginUser);
+router.post("/register", authLimiter, registerUser);
 router.post("/logout", logoutUser);
 
 export default router;

@@ -4,6 +4,7 @@ import userRouter from "./routes/user.route.js";
 import cookieParser from "cookie-parser";
 import helmet from "helmet";
 import authRouter from "./routes/auth.route.js";
+import { globalLimiter } from "./utils/rateLimiting.utils.js";
 
 const app = express();
 app.use(
@@ -13,6 +14,7 @@ app.use(
 );
 app.use(express.json());
 app.use(cookieParser());
+app.use(globalLimiter);
 
 app.get("/", (req, res) => {
   res.send("hello world");

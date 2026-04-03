@@ -4,12 +4,14 @@ import {
   userLoginValidationSchema,
   userRegisterValidationSchema,
 } from "../validations/user.validation.js";
-
+import jwt from "jsonwebtoken";
 import { zodErrorFormat } from "../utils/zodErrorFromatter.js";
 import {
   generateAccessToken,
   generateRefreshToken,
 } from "../utils/token.utlis.js";
+import { env } from "../utils/env.utils.js";
+import User from "../models/user.model.js";
 
 export const registerUser = async (req, res) => {
   try {
@@ -25,6 +27,9 @@ export const registerUser = async (req, res) => {
 
     const accesstToken = generateAccessToken(user._id);
     const refreshToken = generateRefreshToken(user._id);
+    user.refreshToken = refreshToken;
+    await user.save();
+    // console.log("user",user)
     generateCookie(res, "accessToken", accesstToken);
     generateCookie(res, "refreshToken", refreshToken);
     res.status(201).json({
@@ -57,6 +62,10 @@ export const loginUser = async (req, res) => {
     const accesstToken = generateAccessToken(userExists._id);
     const refreshToken = generateRefreshToken(userExists._id);
 
+    userExists.refreshToken = refreshToken;
+    await userExists.save();
+    // console.log("user",userExists)
+
     generateCookie(res, "accessToken", accesstToken);
     generateCookie(res, "refreshToken", refreshToken);
 
@@ -76,6 +85,15 @@ export const loginUser = async (req, res) => {
 
 export const logoutUser = async (req, res) => {
   try {
+    const refreshToken = req.cookies.refreshToken;
+
+    if (refreshToken) {
+      const { id } = jwt.verify(refreshToken, env.JWT_SECRETKEY);
+      const user = await User.findOne({ _id: id });
+      user.refreshToken = null;
+      await user.save();
+    }
+
     // console.log("cookies clear called::")
     removeCookie(res, "accessToken");
     removeCookie(res, "refreshToken");
