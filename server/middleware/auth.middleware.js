@@ -4,7 +4,7 @@ import { env } from "../utils/env.utils.js";
 export const authMiddleware = (req, res, next) => {
   try {
     const token = req.cookies.accessToken;
-    console.log("middleware:::", req.cookies);
+    // console.log("middleware:::", req.cookies);
 
     if (!token) {
       return res.status(401).json({
@@ -14,7 +14,7 @@ export const authMiddleware = (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, env.JWT_SECRETKEY);
-    console.log("decoded", decoded);
+    // console.log("decoded", decoded);
 
     req.user = decoded.id;
 

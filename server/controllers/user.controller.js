@@ -1,8 +1,9 @@
-import User from "../models/user.model.js";
+import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 
-import mongoose from "mongoose";
+
+import User from "../models/user.model.js";
 import { generateAccessToken } from "../utils/token.utlis.js";
 
 import { env } from "../utils/env.utils.js";
