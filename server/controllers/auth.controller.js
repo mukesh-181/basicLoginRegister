@@ -12,6 +12,7 @@ import {
 } from "../utils/token.utlis.js";
 import { env } from "../utils/env.utils.js";
 import User from "../models/user.model.js";
+import Session from "../models/session.model.js";
 
 export const registerUser = async (req, res) => {
   try {
@@ -62,8 +63,15 @@ export const loginUser = async (req, res) => {
     const accesstToken = generateAccessToken(userExists._id);
     const refreshToken = generateRefreshToken(userExists._id);
 
-    userExists.refreshToken = refreshToken;
-    await userExists.save();
+    const session = await Session.create({
+      userId: userExists._id,
+      accessToken: accesstToken,
+      refreshToken,
+      device: req.headers["user-agent"],
+      ip: req.ip,
+      isActive: true,
+    });
+
     // console.log("user",userExists)
 
     generateCookie(res, "accessToken", accesstToken);
@@ -73,8 +81,7 @@ export const loginUser = async (req, res) => {
       success: true,
       message: "Successfully User login",
       user: userExists,
-      accesstToken,
-      refreshToken,
+      session,
     });
   } catch (error) {
     res
@@ -85,13 +92,17 @@ export const loginUser = async (req, res) => {
 
 export const logoutUser = async (req, res) => {
   try {
-    const refreshToken = req.cookies.refreshToken;
+    const sessionId = req.sessionId;
+    const userId = req.user;
 
-    if (refreshToken) {
-      const { id } = jwt.verify(refreshToken, env.JWT_SECRETKEY);
-      const user = await User.findOne({ _id: id });
-      user.refreshToken = null;
-      await user.save();
+    const session = await Session.findOne({
+      _id: sessionId,
+      userId: userId,
+      isActive: true,
+    });
+    if (session) {
+      session.isActive = false;
+      await session.save();
     }
 
     // console.log("cookies clear called::")
@@ -108,3 +119,53 @@ export const logoutUser = async (req, res) => {
       .json({ success: false, message: "Server Error", error: error.message });
   }
 };
+
+
+
+export const logoutAllDevicesExceptCurrent = async (req, res) => {
+  try {
+    const sessionId = req.sessionId;
+    const userId = req.user;
+
+    const session = await Session.updateMany({
+      _id: {$ne:sessionId},
+      userId: userId,
+      isActive: true,
+    },{isActive:false});
+    
+
+    res.status(200).json({
+      success: true,
+      message: "All other devices logged out successfully",
+    });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ success: false, message: "Server Error", error: error.message });
+  }
+};
+
+export const logoutSpecificDevice = async (req, res) => {
+  try {
+    const sessionId = req.params.sessionId;
+    const userId = req.user;
+
+    const session = await Session.findOneAndUpdate({
+      _id: sessionId,
+      userId: userId,
+      isActive: true,
+    },{isActive:false});
+    // console.log("session",session)
+    
+
+    res.status(200).json({
+      success: true,
+      message: `Device ${session.device} is logged out successfully`,
+    });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ success: false, message: "Server Error", error: error.message });
+  }
+};
+
