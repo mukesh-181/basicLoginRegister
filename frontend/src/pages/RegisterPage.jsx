@@ -2,7 +2,7 @@ import React, { useContext, useState } from "react";
 import { FcGoogle } from "react-icons/fc";
 import { FaFacebook } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import axios from "../utils/axios";
 import { AuthContext } from "../../context/AuthContext";
 import toast from "react-hot-toast";
 
@@ -18,7 +18,7 @@ const RegisterPage = () => {
     console.log("username:", username, "email:", email, "password:", password);
     try {
       const res = await axios.post(
-        "http://localhost:4000/api/auth/register",
+        "/auth/register",
         {
           userName:username,
           email,

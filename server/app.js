@@ -6,6 +6,7 @@ import cors from 'cors'
 import userRouter from "./routes/user.route.js";
 import authRouter from "./routes/auth.route.js";
 import { globalLimiter } from "./utils/rateLimiting.utils.js";
+import morgan from 'morgan'
 
 
 const app = express();
@@ -21,6 +22,7 @@ app.use(cors({
     credentials: true,
   }))
 app.use(globalLimiter);
+app.use(morgan("dev"))
 
 app.get("/", (req, res) => {
   res.send("hello world");

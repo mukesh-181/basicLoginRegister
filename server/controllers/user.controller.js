@@ -8,6 +8,7 @@ import { generateAccessToken } from "../utils/token.utlis.js";
 
 import { env } from "../utils/env.utils.js";
 import { generateCookie } from "../utils/cookies.utils.js";
+import Session from "../models/session.model.js";
 
 export const getUserDetails = async (req, res) => {
   try {
@@ -121,34 +122,77 @@ export const updateUser = async (req, res) => {
   }
 };
 
-export const regenrateAccessToken = async (req, res) => {
+
+
+export const regenerateAccessToken = async (req, res) => {
   try {
     const refreshToken = req.cookies.refreshToken;
 
     if (!refreshToken) {
       return res.status(401).json({
         success: false,
-        message: "Refresh Token not found",
+        message: "Refresh token not found",
       });
     }
 
-    const { id } = jwt.verify(refreshToken, env.JWT_SECRETKEY);
-    const user = await User.findOne({ _id: id });
-    if (!user || user.refreshToken !== refreshToken) {
+    // Verify refresh token
+    const decoded = jwt.verify(refreshToken, env.JWT_SECRETKEY);
+
+    //  Find session (NOT user)
+    const session = await Session.findOne({
+      refreshToken,
+      userId: decoded.id,
+      isActive: true,
+    });
+
+    if (!session) {
       return res.status(403).json({
         success: false,
-        message: "Refresh Token Invalid",
+        message: "Invalid or expired session",
       });
     }
 
-    const accessToken = generateAccessToken(id);
-    generateCookie(res, "accessToken", accessToken);
+    //  Generate new access token
+    const newAccessToken = generateAccessToken(decoded.id);
+
+    //  Update session
+    session.accessToken = newAccessToken;
+
+
+    await session.save();
+
+    //  Set cookie
+    generateCookie(res, "accessToken", newAccessToken);
 
     res.status(200).json({
       success: true,
-      message: "Successfully Access Token Generated ",
-      accessToken,
-      refreshToken,
+      message: "Access token regenerated successfully",
+      accessToken: newAccessToken,
+    });
+  } catch (error) {
+    return res.status(403).json({
+      success: false,
+      message: "Invalid or expired refresh token",
+    });
+  }
+};
+
+
+export const getMyDevices = async (req, res) => {
+  try {
+    const allDevices = await Session.find({userId:req.user,isActive:true})
+
+    if (allDevices.length === 0) {
+      return res
+        .status(200)
+        .json({ success: false, message: "No Devices Found" });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "All Devices fetched successfully",
+      totalActiveDevices: allDevices.length,
+      allDevices,
     });
   } catch (error) {
     res

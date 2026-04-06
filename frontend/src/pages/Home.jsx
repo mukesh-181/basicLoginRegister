@@ -1,46 +1,20 @@
 import React, { useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
-import axios from "axios";
+import axios from "../utils/axios";
 import toast from "react-hot-toast";
+import Navbar from "../components/Navbar";
 
 const Home = () => {
   const navigate = useNavigate();
   const { setUser } = useContext(AuthContext);
   // console.log("home isLoading ", isLoading)
 
-  const handleLogout = async () => {
-    console.log("logout clicked")
-    try {
-      await axios.post(
-        "http://localhost:4000/api/auth/logout",
-        {},
-        { withCredentials: true },
-      );
-      setUser(null)
-      toast.success('Logout Successful !', {
-  duration: 3000, // 3 second
-});
-      navigate("/login")
-    } catch (error) {
-         console.log("error:", error.response?.data || error.message);
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
       {/* Navbar */}
-      <nav className="flex justify-between items-center p-6 bg-white shadow-md">
-        <h1 className="text-xl font-bold cursor-pointer" onClick={()=>navigate("/")}>MyApp</h1>
-        <div className="flex gap-4">
-          <button
-            onClick={() => handleLogout()}
-            className="bg-black text-white px-4 py-2 rounded-lg cursor-pointer"
-          >
-            Logout
-          </button>
-        </div>
-      </nav>
+     <Navbar/>
 
       {/* Hero Section */}
       <div className="flex flex-1 items-center justify-center px-10">
