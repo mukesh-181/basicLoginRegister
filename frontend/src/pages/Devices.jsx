@@ -1,12 +1,15 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
 import axios from "../utils/axios";
+import { AuthContext } from "../../context/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 const Devices = () => {
   const [devices, setDevices] = useState([]);
   const [total, setTotal] = useState(0);
+  const { setUser } = useContext(AuthContext);
 
-  // 🔹 Fetch devices
+  //  Fetch devices
   const fetchDevices = async () => {
     try {
       const res = await axios.get("/user/my-devices", {
@@ -20,17 +23,20 @@ const Devices = () => {
     }
   };
 
-  useEffect(() => {
-    fetchDevices();
-  }, []);
-
   // 🔹 Logout specific device
-  const handleLogoutDevice = async (sessionId) => {
+  const handleLogoutDevice = async (sessionId, isCurrent) => {
     try {
-      await axios.post(`/auth/logout-specific-device/${sessionId}`, {}, {
-        withCredentials: true,
-      });
+      await axios.post(
+        `/auth/logout-specific-device/${sessionId}`,
+        {},
+        {
+          withCredentials: true,
+        },
+      );
       fetchDevices();
+      if (isCurrent) {
+        setUser(null);
+      }
     } catch (err) {
       console.error(err);
     }
@@ -39,9 +45,13 @@ const Devices = () => {
   // 🔹 Logout other devices
   const handleLogoutOthers = async () => {
     try {
-      await axios.post("/auth/logout-all-except-current", {}, {
-        withCredentials: true,
-      });
+      await axios.post(
+        "/auth/logout-all-except-current",
+        {},
+        {
+          withCredentials: true,
+        },
+      );
       fetchDevices();
     } catch (err) {
       console.error(err);
@@ -53,6 +63,11 @@ const Devices = () => {
     return new Date(time).toLocaleString();
   };
 
+  useEffect(() => {
+    fetchDevices();
+  }, []);
+  console.log("devices", devices);
+
   return (
     <>
       <Navbar />
@@ -60,15 +75,13 @@ const Devices = () => {
       <div className="p-6 max-w-3xl mx-auto">
         <h2 className="text-2xl font-bold mb-2">Your Devices</h2>
 
-        <p className="text-gray-500 mb-4">
-          Total Active Devices: {total}
-        </p>
+        <p className="text-gray-500 mb-4">Total Active Devices: {total}</p>
 
         {/* Logout Others */}
         {devices.length > 1 && (
           <button
             onClick={handleLogoutOthers}
-            className="mb-6 bg-red-500 text-white px-4 py-2 rounded-lg"
+            className="mb-6 bg-red-500 text-white px-4 py-2 cursor-pointer rounded-lg"
           >
             Logout Other Devices
           </button>
@@ -92,12 +105,6 @@ const Devices = () => {
                 <div>
                   <p className="font-semibold flex items-center gap-2">
                     {device.device || "Unknown Device"}
-
-                    {device.isCurrent && (
-                      <span className="text-green-500 text-sm">
-                        (This Device)
-                      </span>
-                    )}
                   </p>
 
                   <p className="text-sm text-gray-500">
@@ -107,14 +114,13 @@ const Devices = () => {
               </div>
 
               {/* Logout button */}
-              {!device.isCurrent && (
-                <button
-                  onClick={() => handleLogoutDevice(device._id)}
-                  className="bg-black text-white px-3 py-1 rounded-lg"
-                >
-                  Logout
-                </button>
-              )}
+
+              <button
+                onClick={() => handleLogoutDevice(device._id, device.isCurrent)}
+                className="bg-black text-white px-3 py-1 rounded-lg cursor-pointer"
+              >
+                Logout
+              </button>
             </div>
           ))}
         </div>

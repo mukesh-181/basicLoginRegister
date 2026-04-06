@@ -1,20 +1,13 @@
-import React, { useContext } from "react";
-import { useNavigate } from "react-router-dom";
-import { AuthContext } from "../../context/AuthContext";
-import axios from "../utils/axios";
-import toast from "react-hot-toast";
+import React from "react";
 import Navbar from "../components/Navbar";
 
 const Home = () => {
-  const navigate = useNavigate();
-  const { setUser } = useContext(AuthContext);
   // console.log("home isLoading ", isLoading)
-
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
       {/* Navbar */}
-     <Navbar/>
+      <Navbar />
 
       {/* Hero Section */}
       <div className="flex flex-1 items-center justify-center px-10">
@@ -27,22 +20,6 @@ const Home = () => {
           <p className="text-gray-600 text-lg">
             Create, manage, and grow your ideas with our powerful platform.
           </p>
-
-          {/* <div className="flex gap-4">
-            <button
-              onClick={() => navigate("/register")}
-              className="bg-black text-white px-6 py-3 rounded-xl"
-            >
-              Get Started
-            </button>
-
-            <button
-              onClick={() => navigate("/login")}
-              className="border border-black px-6 py-3 rounded-xl"
-            >
-              Learn More
-            </button>
-          </div> */}
         </div>
 
         {/* Right */}

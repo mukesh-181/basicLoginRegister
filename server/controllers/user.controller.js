@@ -2,7 +2,6 @@ import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 
-
 import User from "../models/user.model.js";
 import { generateAccessToken } from "../utils/token.utlis.js";
 
@@ -122,8 +121,6 @@ export const updateUser = async (req, res) => {
   }
 };
 
-
-
 export const regenerateAccessToken = async (req, res) => {
   try {
     const refreshToken = req.cookies.refreshToken;
@@ -158,7 +155,6 @@ export const regenerateAccessToken = async (req, res) => {
     //  Update session
     session.accessToken = newAccessToken;
 
-
     await session.save();
 
     //  Set cookie
@@ -177,10 +173,10 @@ export const regenerateAccessToken = async (req, res) => {
   }
 };
 
-
 export const getMyDevices = async (req, res) => {
   try {
-    const allDevices = await Session.find({userId:req.user,isActive:true})
+    const currentSessionId = req.sessionId;
+    const allDevices = await Session.find({ userId: req.user, isActive: true });
 
     if (allDevices.length === 0) {
       return res
@@ -188,11 +184,20 @@ export const getMyDevices = async (req, res) => {
         .json({ success: false, message: "No Devices Found" });
     }
 
+    const devicesWithFlag = allDevices.map((device) => {
+      const obj = device.toObject();
+
+      return {
+        ...obj,
+        isCurrent: obj._id.toString() === currentSessionId.toString(),
+      };
+    });
+
     res.status(200).json({
       success: true,
       message: "All Devices fetched successfully",
       totalActiveDevices: allDevices.length,
-      allDevices,
+      allDevices: devicesWithFlag,
     });
   } catch (error) {
     res
@@ -200,3 +205,4 @@ export const getMyDevices = async (req, res) => {
       .json({ success: false, message: "Server Error", error: error.message });
   }
 };
+
