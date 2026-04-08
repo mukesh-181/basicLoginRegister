@@ -63,25 +63,25 @@ export const loginUser = async (req, res) => {
 
     const userExists = await login(res, result.data);
 
-    const device = req.headers["user-agent"];
-const ip = req.ip;
+//     const device = req.headers["user-agent"];
+// const ip = req.ip;
 
 
-let isSessionExists = await Session.findOne({
-  userId:userExists._id,
-  device,
-  ip,
-  isActive: true,
-});
+// let isSessionExists = await Session.findOne({
+//   userId:userExists._id,
+//   device,
+//   ip,
+//   isActive: true,
+// });
 
-if (isSessionExists) {
+// if (isSessionExists) {
  
-  return res.status(200).json({
-    success: true,
-    message: "Already logged in",
-    sessionId: isSessionExists._id,
-  });
-}
+//   return res.status(200).json({
+//     success: true,
+//     message: "Already logged in",
+//     sessionId: isSessionExists._id,
+//   });
+// }
 
     const accesstToken = generateAccessToken(userExists._id);
     const refreshToken = generateRefreshToken(userExists._id);
